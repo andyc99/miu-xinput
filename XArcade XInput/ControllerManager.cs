@@ -1,6 +1,6 @@
 ﻿using ScpDriverInterface;
 
-namespace XArcade_XInput {
+namespace MIU_XInput {
     class ControllerManagerEventArgs : System.EventArgs {
         public int Index;
         public X360Controller Controller;
@@ -11,6 +11,13 @@ namespace XArcade_XInput {
         RightTrigger,
         LeftStickX,
         LeftStickY,
+        LeftStickUp,
+        LeftStickDown,
+        LeftStickLeft,
+        LeftStickRight,
+        LeftStickAngleLeft,
+        LeftStickAngleRight,
+        LeftStickAngleModifier,
         RightStickX,
         RightStickY,
     }

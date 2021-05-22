@@ -1,4 +1,4 @@
-﻿namespace XArcade_XInput {
+﻿namespace MIU_XInput {
     class Program {
         static public ControllerManager ControllerManagerInstance;
         static public KeyboardMapper KeyboardMapperInstance;

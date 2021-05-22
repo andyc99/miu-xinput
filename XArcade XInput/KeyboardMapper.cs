@@ -1,9 +1,10 @@
 ﻿using ScpDriverInterface;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace XArcade_XInput {
+namespace MIU_XInput {
     class KeyboardMapper {
         public bool IsRunning = false;
         public List<int> MappedControllerIndexes = new List<int>();
@@ -11,10 +12,18 @@ namespace XArcade_XInput {
         Gma.System.MouseKeyHook.IKeyboardMouseEvents KeyboardHook;
         public event System.EventHandler OnParse;
 
+        Dictionary<X360Axis, bool> AxisKeysDown = new Dictionary<X360Axis, bool>();
+        public static float CurrentAngle = 90;
+
         public string CurrentMappingName;
-        string DefaultMappingName = "X-Arcade 2 Player Analog";
+        string DefaultMappingName = "WASD extended";
 
         public KeyboardMapper () {
+            foreach (X360Axis axis in Enum.GetValues(typeof(X360Axis)))
+            {
+                AxisKeysDown.Add(axis, false);
+            }
+
             KeyboardHook = Gma.System.MouseKeyHook.Hook.GlobalEvents();
 
             LoadPreviousMapping();
@@ -210,18 +219,38 @@ namespace XArcade_XInput {
                 var controllerKey = (string)shorthand[1];
                 var didMap = false;
 
-                switch (controllerKey) {
+                switch (controllerKey)
+                {
+                    case "LeftStickUp":
+                    case "LeftStickDown":
+                    case "LeftStickLeft":
+                    case "LeftStickRight":
+                        {
+                            var axis = (X360Axis)System.Enum.Parse(typeof(X360Axis), controllerKey);
+
+                            KeyboardMappings[pair.Key] = new KeyboardDownToLeftStick { AxisKeysDown = AxisKeysDown, Index = controllerIndex, Axis = axis };
+                            didMap = true;
+
+                            break;
+                        }
+                    case "LeftStickAngleLeft":
+                    case "LeftStickAngleRight":
+                    case "LeftStickAngleModifier":
+                        {
+                            var axis = (X360Axis)System.Enum.Parse(typeof(X360Axis), controllerKey);
+                            var angle = ParseAxisAngle(shorthand);
+
+                            KeyboardMappings[pair.Key] = new KeyboardDownToLeftStickAngle { Angle = angle,  AxisKeysDown = AxisKeysDown, Index = controllerIndex, Axis = axis };
+                            didMap = true;
+
+                            break;
+                        }
                     case "LeftTrigger":
                     case "RightTrigger":
-                    case "LeftStickX":
-                    case "LeftStickY":
                     case "RightStickX":
-                    case "RightStickY": {
-                            var maxValue = short.MaxValue;
-
-                            if (controllerKey == "LeftTrigger" || controllerKey == "RightTrigger") {
-                                maxValue = byte.MaxValue;
-                            }
+                    case "RightStickY":
+                        {
+                            var maxValue = byte.MaxValue;
 
                             var axis = (X360Axis)System.Enum.Parse(typeof(X360Axis), controllerKey);
                             var multipliers = ParseAxisMultipliers(shorthand);
@@ -281,6 +310,24 @@ namespace XArcade_XInput {
 
             return new float[] { downMultiplier, upMultiplier };
         }
+
+        float ParseAxisAngle(object[] shorthand)
+        {
+            float angle = 90;
+
+            if (shorthand.Length == 3)
+            {
+                try
+                {
+                    angle = (int)shorthand[2];
+                } catch (System.Exception)
+                {
+                    angle = (float)(decimal)shorthand[2];
+                }
+            }
+
+            return angle;
+        }
     }
 
     class IKeyboardActionToGamepad {
@@ -300,19 +347,110 @@ namespace XArcade_XInput {
             Program.ControllerManagerInstance.ButtonDown(Index, Button);
         }
     }
-
-    class KeyboardDownToAxis : IKeyboardActionToGamepad {
+    class KeyboardDownToAxis : IKeyboardActionToGamepad
+    {
         public int DownValue;
         public int UpValue;
         public X360Axis Axis;
 
-        override public void Run (bool IsRelease = false) {
-            if (IsRelease) {
+        override public void Run(bool IsRelease = false)
+        {
+            if (IsRelease)
+            {
                 Program.ControllerManagerInstance.SetAxis(Index, Axis, UpValue);
                 return;
             }
 
             Program.ControllerManagerInstance.SetAxis(Index, Axis, DownValue);
+        }
+    }
+
+    class KeyboardDownToLeftStick : IKeyboardActionToGamepad {
+        public Dictionary<X360Axis, bool> AxisKeysDown;
+        public X360Axis Axis;
+
+        override public void Run (bool IsRelease = false) {
+            if (IsRelease)
+            {
+                AxisKeysDown[Axis] = false;
+            }
+            else
+            {
+                AxisKeysDown[Axis] = true;
+            }
+
+            SendInputs();
+        }
+
+        protected void SendInputs()
+        {
+            int YAngleValue = (int)Math.Round(short.MaxValue * Math.Tan(Math.PI * (90 - KeyboardMapper.CurrentAngle) / 180));
+
+            // angles override cardinal directions
+            if (AxisKeysDown[X360Axis.LeftStickAngleLeft] || (AxisKeysDown[X360Axis.LeftStickLeft] && AxisKeysDown[X360Axis.LeftStickAngleModifier]))
+            {
+                Program.ControllerManagerInstance.SetAxis(Index, X360Axis.LeftStickX, short.MinValue);
+                Program.ControllerManagerInstance.SetAxis(Index, X360Axis.LeftStickY, YAngleValue);
+                return;
+            }
+
+            if (AxisKeysDown[X360Axis.LeftStickAngleRight] || (AxisKeysDown[X360Axis.LeftStickRight] && AxisKeysDown[X360Axis.LeftStickAngleModifier]))
+            {
+                Program.ControllerManagerInstance.SetAxis(Index, X360Axis.LeftStickX, short.MaxValue);
+                Program.ControllerManagerInstance.SetAxis(Index, X360Axis.LeftStickY, YAngleValue);
+                return;
+            }
+
+            // Y axis
+            if (AxisKeysDown[X360Axis.LeftStickDown])
+            {
+                Program.ControllerManagerInstance.SetAxis(Index, X360Axis.LeftStickY, short.MinValue);
+            }
+            else if (AxisKeysDown[X360Axis.LeftStickUp])
+            {
+                Program.ControllerManagerInstance.SetAxis(Index, X360Axis.LeftStickY, short.MaxValue);
+            }
+            else
+            {
+                Program.ControllerManagerInstance.SetAxis(Index, X360Axis.LeftStickY, 0);
+            }
+
+            // X axis
+            if (AxisKeysDown[X360Axis.LeftStickLeft])
+            {
+                Program.ControllerManagerInstance.SetAxis(Index, X360Axis.LeftStickX, short.MinValue);
+            }
+            else if (AxisKeysDown[X360Axis.LeftStickRight])
+            {
+                Program.ControllerManagerInstance.SetAxis(Index, X360Axis.LeftStickX, short.MaxValue);
+            }
+            else
+            {
+                Program.ControllerManagerInstance.SetAxis(Index, X360Axis.LeftStickX, 0);
+            }
+        }
+    }
+
+    class KeyboardDownToLeftStickAngle : KeyboardDownToLeftStick
+    {
+        public float Angle;
+
+        override public void Run(bool IsRelease = false)
+        {
+            if (IsRelease)
+            {
+                AxisKeysDown[Axis] = false;
+            }
+            else
+            {
+                AxisKeysDown[Axis] = true;
+                if (Axis == X360Axis.LeftStickAngleLeft || Axis == X360Axis.LeftStickAngleRight || Axis == X360Axis.LeftStickAngleModifier)
+                {
+                    KeyboardMapper.CurrentAngle = Angle;
+                }
+            }
+
+            SendInputs();
         }
     }
 }

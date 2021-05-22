@@ -4,7 +4,7 @@ using Grapevine.Shared;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace XArcade_XInput {
+namespace MIU_XInput {
     class RestServer {
         public bool IsRunning = false;
         Grapevine.Server.RestServer _server;

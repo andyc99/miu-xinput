@@ -24,7 +24,7 @@
         static void SetupFirewall() {
             RunCommand(new System.Diagnostics.ProcessStartInfo {
                 FileName = "netsh",
-                Arguments = "advfirewall firewall add rule name=\"XArcade XInput\" dir=in action=allow protocol=TCP localport=32123",
+                Arguments = "advfirewall firewall add rule name=\"MIU XInput\" dir=in action=allow protocol=TCP localport=32123",
             }, true);
 
             RunCommand(new System.Diagnostics.ProcessStartInfo {

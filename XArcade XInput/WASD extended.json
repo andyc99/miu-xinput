@@ -1,0 +1,8 @@
+﻿{
+	"W": [ 0, "LeftStickUp" ],
+	"S": [ 0, "LeftStickDown" ],
+	"A": [ 0, "LeftStickLeft" ],
+	"D": [ 0, "LeftStickRight" ],
+	"Q": [ 0, "LeftStickAngleLeft", 75 ],
+	"E": [ 0, "LeftStickAngleRight", 75 ]
+}
