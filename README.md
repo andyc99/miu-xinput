@@ -35,8 +35,11 @@ The Web UI can also be accessed on any phone, tablet, or other computer.
 
 ## Mappings
 
-You can change any keyboard key to output any single 360 Controller Axis or a specified angle (relative to the up direction).
-This remaps the normal left and right controls, A and D, to a 75 degree angle:
+You can change any keyboard key to output any single 360 Controller Axis or a specified angle (relative to the up direction). Or define a modifier key to change normal axes to a specified angle.
+
+The "angle" key mappings will take priority over standard axes, so you don't have to release other keys (e.g. "up") to get the desired angle.
+
+Examples: This remaps the normal left and right controls, A and D, to a 75 degree angle, which I have found gives the fastest cornering speed:
 
 ```json
 {
