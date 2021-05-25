@@ -18,6 +18,7 @@ namespace MIU_XInput {
         LeftStickAngleLeft,
         LeftStickAngleRight,
         LeftStickAngleModifier,
+        LeftStickAngleToggle,
         RightStickX,
         RightStickY,
     }

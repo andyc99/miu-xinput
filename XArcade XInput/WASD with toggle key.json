@@ -1,0 +1,7 @@
+{
+	"W": [ 0, "LeftStickUp" ],
+	"S": [ 0, "LeftStickDown" ],
+	"A": [ 0, "LeftStickLeft" ],
+	"D": [ 0, "LeftStickRight" ],
+	"LShiftKey": [0, "LeftStickAngleToggle", 75]
+}

@@ -29,17 +29,40 @@ Credit to MikeW for doing all the hard work on XArcade Xinput.
 
 Mappings are configurable. Some examples are below.
 
-When you run "MIU XInput.exe" it will open [http://localhost:32123/](http://localhost:32123/) in a browser to to access the Web UI.
+When you run "MIU XInput.exe" it will open [http://localhost:32123/](http://localhost:32123/) in a browser to access the Web UI configuration page.
 From here you can turn it on or off, and change the mappings.
 The Web UI can also be accessed on any phone, tablet, or other computer.
 
 ## Mappings
 
-You can change any keyboard key to output any single 360 Controller Axis or a specified angle (relative to the up direction). Or define a modifier key to change normal axes to a specified angle.
+You can change any keyboard key to output any single 360 Controller Axis or a specified angle (relative to the up direction).
+Or define a modifier key to swithch between normal movement and a specified angle.See the examples below.
 
 The "angle" key mappings will take priority over standard axes, so you don't have to release other keys (e.g. "up") to get the desired angle.
 
-Examples: This remaps the normal left and right controls, A and D, to a 75 degree angle, which I have found gives the fastest cornering speed:
+The following "Axes" have been added in addition to those of XArcade Xinput:
+
+LeftStickAngleLeft <angle>: Maps a key to the specified angle left
+LeftStickAngleRight <angle>: Maps a key to the specified angle right
+LeftStickAngleModifier <angle>: When held down, the mapped key modifies normal left and right axes to the above angle axes
+LeftStickAngleToggle <angle>: When pressed, the mapped key toggles left and right keys between normal movement and the above angle axes
+
+Example configs:
+
+This uses a toggle key to dynamically switch the A and D keys, betwen the normal left and right controls and a 75 degree angle. This angle gives the fastest cornering speed for me:
+This mapping is the default when the app is first run.
+
+```json
+{
+    "W": [0, "LeftStickUp"],
+    "S": [0, "LeftStickDown"],
+    "A": [0, "LeftStickLeft"],
+    "D": [0, "LeftStickRight"],
+	"LShiftKey": [0, "LeftStickAngleToggle", 75]
+}
+```
+
+This remaps the normal left and right controls, A and D, to a 75 degree angle:
 
 ```json
 {
@@ -63,7 +86,7 @@ This augments standard WASD controls with two extra ones at a 75 degree angle:
 }
 ```
 
-This uses a modifier key to dynamically change the normal left and right controls, A and D, to a 75 degree angle:
+This uses a modifier key (which must be held down) to dynamically change the normal left and right controls, A and D, to a 75 degree angle:
 
 ```json
 {
@@ -73,6 +96,7 @@ This uses a modifier key to dynamically change the normal left and right control
     "D": [0, "LeftStickRight"],
 	"LShiftKey": [0, "LeftStickAngleModifier", 75]
 }
+```
 
 See the original XArcade Xinput project for further mappings which are possible to other controller sticks and buttons.
 

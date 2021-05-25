@@ -12,8 +12,9 @@ namespace MIU_XInput {
         Gma.System.MouseKeyHook.IKeyboardMouseEvents KeyboardHook;
         public event System.EventHandler OnParse;
 
-        Dictionary<X360Axis, bool> AxisKeysDown = new Dictionary<X360Axis, bool>();
+        public static Dictionary<X360Axis, bool> AxisKeysDown = new Dictionary<X360Axis, bool>();
         public static float CurrentAngle = 90;
+        public static Boolean AngleToggle = false;
 
         public string CurrentMappingName;
         string DefaultMappingName = "WASD extended";
@@ -228,7 +229,7 @@ namespace MIU_XInput {
                         {
                             var axis = (X360Axis)System.Enum.Parse(typeof(X360Axis), controllerKey);
 
-                            KeyboardMappings[pair.Key] = new KeyboardDownToLeftStick { AxisKeysDown = AxisKeysDown, Index = controllerIndex, Axis = axis };
+                            KeyboardMappings[pair.Key] = new KeyboardDownToLeftStick { Index = controllerIndex, Axis = axis };
                             didMap = true;
 
                             break;
@@ -240,7 +241,17 @@ namespace MIU_XInput {
                             var axis = (X360Axis)System.Enum.Parse(typeof(X360Axis), controllerKey);
                             var angle = ParseAxisAngle(shorthand);
 
-                            KeyboardMappings[pair.Key] = new KeyboardDownToLeftStickAngle { Angle = angle,  AxisKeysDown = AxisKeysDown, Index = controllerIndex, Axis = axis };
+                            KeyboardMappings[pair.Key] = new KeyboardDownToLeftStickAngle { Angle = angle,  Index = controllerIndex, Axis = axis };
+                            didMap = true;
+
+                            break;
+                        }
+                    case "LeftStickAngleToggle":
+                        {
+                            var axis = (X360Axis)System.Enum.Parse(typeof(X360Axis), controllerKey);
+                            var angle = ParseAxisAngle(shorthand);
+
+                            KeyboardMappings[pair.Key] = new KeyboardDownToLeftStickAngleToggle { Angle = angle,  Index = controllerIndex, Axis = axis };
                             didMap = true;
 
                             break;
@@ -366,17 +377,16 @@ namespace MIU_XInput {
     }
 
     class KeyboardDownToLeftStick : IKeyboardActionToGamepad {
-        public Dictionary<X360Axis, bool> AxisKeysDown;
         public X360Axis Axis;
 
         override public void Run (bool IsRelease = false) {
             if (IsRelease)
             {
-                AxisKeysDown[Axis] = false;
+                KeyboardMapper.AxisKeysDown[Axis] = false;
             }
             else
             {
-                AxisKeysDown[Axis] = true;
+                KeyboardMapper.AxisKeysDown[Axis] = true;
             }
 
             SendInputs();
@@ -387,14 +397,16 @@ namespace MIU_XInput {
             int YAngleValue = (int)Math.Round(short.MaxValue * Math.Tan(Math.PI * (90 - KeyboardMapper.CurrentAngle) / 180));
 
             // angles override cardinal directions
-            if (AxisKeysDown[X360Axis.LeftStickAngleLeft] || (AxisKeysDown[X360Axis.LeftStickLeft] && AxisKeysDown[X360Axis.LeftStickAngleModifier]))
+            if (KeyboardMapper.AxisKeysDown[X360Axis.LeftStickAngleLeft] || 
+                (KeyboardMapper.AxisKeysDown[X360Axis.LeftStickLeft] && (KeyboardMapper.AxisKeysDown[X360Axis.LeftStickAngleModifier] || KeyboardMapper.AngleToggle)))
             {
                 Program.ControllerManagerInstance.SetAxis(Index, X360Axis.LeftStickX, short.MinValue);
                 Program.ControllerManagerInstance.SetAxis(Index, X360Axis.LeftStickY, YAngleValue);
                 return;
             }
 
-            if (AxisKeysDown[X360Axis.LeftStickAngleRight] || (AxisKeysDown[X360Axis.LeftStickRight] && AxisKeysDown[X360Axis.LeftStickAngleModifier]))
+            if (KeyboardMapper.AxisKeysDown[X360Axis.LeftStickAngleRight] || 
+                (KeyboardMapper.AxisKeysDown[X360Axis.LeftStickRight] && (KeyboardMapper.AxisKeysDown[X360Axis.LeftStickAngleModifier] || KeyboardMapper.AngleToggle)))
             {
                 Program.ControllerManagerInstance.SetAxis(Index, X360Axis.LeftStickX, short.MaxValue);
                 Program.ControllerManagerInstance.SetAxis(Index, X360Axis.LeftStickY, YAngleValue);
@@ -402,11 +414,11 @@ namespace MIU_XInput {
             }
 
             // Y axis
-            if (AxisKeysDown[X360Axis.LeftStickDown])
+            if (KeyboardMapper.AxisKeysDown[X360Axis.LeftStickDown])
             {
                 Program.ControllerManagerInstance.SetAxis(Index, X360Axis.LeftStickY, short.MinValue);
             }
-            else if (AxisKeysDown[X360Axis.LeftStickUp])
+            else if (KeyboardMapper.AxisKeysDown[X360Axis.LeftStickUp])
             {
                 Program.ControllerManagerInstance.SetAxis(Index, X360Axis.LeftStickY, short.MaxValue);
             }
@@ -416,11 +428,11 @@ namespace MIU_XInput {
             }
 
             // X axis
-            if (AxisKeysDown[X360Axis.LeftStickLeft])
+            if (KeyboardMapper.AxisKeysDown[X360Axis.LeftStickLeft])
             {
                 Program.ControllerManagerInstance.SetAxis(Index, X360Axis.LeftStickX, short.MinValue);
             }
-            else if (AxisKeysDown[X360Axis.LeftStickRight])
+            else if (KeyboardMapper.AxisKeysDown[X360Axis.LeftStickRight])
             {
                 Program.ControllerManagerInstance.SetAxis(Index, X360Axis.LeftStickX, short.MaxValue);
             }
@@ -439,14 +451,36 @@ namespace MIU_XInput {
         {
             if (IsRelease)
             {
-                AxisKeysDown[Axis] = false;
+                KeyboardMapper.AxisKeysDown[Axis] = false;
             }
             else
             {
-                AxisKeysDown[Axis] = true;
+                KeyboardMapper.AxisKeysDown[Axis] = true;
                 if (Axis == X360Axis.LeftStickAngleLeft || Axis == X360Axis.LeftStickAngleRight || Axis == X360Axis.LeftStickAngleModifier)
                 {
                     KeyboardMapper.CurrentAngle = Angle;
+                }
+            }
+
+            SendInputs();
+        }
+    }
+
+    class KeyboardDownToLeftStickAngleToggle : KeyboardDownToLeftStick
+    {
+        public float Angle;
+                               
+        override public void Run(bool IsRelease = false)
+        {
+            if (!IsRelease)
+            {
+                KeyboardMapper.AngleToggle = !KeyboardMapper.AngleToggle;
+                KeyboardMapper.CurrentAngle = Angle;
+
+                if (Program.IsDebug)
+                {
+                    string state = KeyboardMapper.AngleToggle ? "on" : "off";
+                    System.Console.WriteLine($"Toggle: {state}");
                 }
             }
 
