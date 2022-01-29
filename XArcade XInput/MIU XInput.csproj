@@ -80,6 +80,7 @@
     <None Include="packages.config" />
     <None Include="WASD with modifier key.json" />
     <None Include="WASD replaced.json" />
+    <None Include="WASD with toggle key.json" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

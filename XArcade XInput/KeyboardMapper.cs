@@ -3,9 +3,23 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text;
 
 namespace MIU_XInput {
     class KeyboardMapper {
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetForegroundWindow();
+
+        [DllImport("user32.dll")]
+        static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int count);
+        
+        [DllImport("user32.dll")]
+        static extern int GetWindowTextLength(IntPtr hWnd);
+
+        String appName = "MarbleItUp";
+
         public bool IsRunning = false;
         public List<int> MappedControllerIndexes = new List<int>();
         Dictionary<string, IKeyboardActionToGamepad> KeyboardMappings = new Dictionary<string, IKeyboardActionToGamepad>();
@@ -17,7 +31,7 @@ namespace MIU_XInput {
         public static Boolean AngleToggle = false;
 
         public string CurrentMappingName;
-        string DefaultMappingName = "WASD extended";
+        string DefaultMappingName = "WASD with toggle key";
 
         public KeyboardMapper () {
             foreach (X360Axis axis in Enum.GetValues(typeof(X360Axis)))
@@ -173,6 +187,12 @@ namespace MIU_XInput {
         static List<System.Windows.Forms.Keys> keysDown = new List<System.Windows.Forms.Keys>();
 
         void KeyboardHook_KeyDown (object sender, System.Windows.Forms.KeyEventArgs e) {
+            String title = GetCaptionOfActiveWindow();
+            if (appName != null && title != appName)
+            {
+                return;
+            }
+
             if (KeyboardMappings.ContainsKey(e.KeyCode.ToString())) {
                 KeyboardMappings[e.KeyCode.ToString()].Run();
                 e.Handled = true;
@@ -187,7 +207,14 @@ namespace MIU_XInput {
             }
         }
 
-        void KeyboardHook_KeyUp (object sender, System.Windows.Forms.KeyEventArgs e) {
+        void KeyboardHook_KeyUp (object sender, System.Windows.Forms.KeyEventArgs e)
+        {
+            String title = GetCaptionOfActiveWindow();
+            if (appName != null && title != appName)
+            {
+                return;
+            }
+
             if (KeyboardMappings.ContainsKey(e.KeyCode.ToString())) {
                 KeyboardMappings[e.KeyCode.ToString()].Run(true);
                 e.Handled = true;
@@ -338,6 +365,20 @@ namespace MIU_XInput {
             }
 
             return angle;
+        }
+
+        private string GetCaptionOfActiveWindow()
+        {
+            var strTitle = string.Empty;
+            var handle = GetForegroundWindow();
+            // Obtain the length of the text   
+            var intLength = GetWindowTextLength(handle) + 1;
+            var stringBuilder = new StringBuilder(intLength);
+            if (GetWindowText(handle, stringBuilder, intLength) > 0)
+            {
+                strTitle = stringBuilder.ToString();
+            }
+            return strTitle;
         }
     }
 
