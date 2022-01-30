@@ -85,10 +85,6 @@ namespace MIU_XInput {
         }
 
         public void SaveMapping (string name, string contents) {
-            if (name == DefaultMappingName) {
-                return;
-            }
-
             name = SanitizeName(name);
             var path = GetMappingPath($"{name}.json");
 

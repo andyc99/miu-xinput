@@ -4,6 +4,7 @@ Turn keyboard into a 360 Controller.
 
 This is a fork of [XArcade XInput](https://github.com/mikew/xarcade-xinput) to add the ability to map a key to multiple left-stick axes, i.e. map a key to a non-cardinal angle.
 It's specifically aimed at Marble It Up! where the optimal turning angle is not at 45 degrees.
+NB Since version 1.2 key presses will only be captured when 'Marble It Up!' is the active application; other apps will function as normal (so you can type in other applications while MIU XInput is running.)
 
 Credit to MikeW for doing all the hard work on XArcade Xinput.
 
@@ -12,7 +13,6 @@ Credit to MikeW for doing all the hard work on XArcade Xinput.
 1. [Download the latest release](https://github.com/andyc99/miu-xinput/releases/latest)
 1. Double-click `Install Driver.exe`.
 1. Run `MIU XInput.exe`
-1. [Test in the HTML5 Gamepad Tester](https://greggman.github.io/html5-gamepad-test/) You might have to press a key for the controller to be detected.
 
 ## Manual Installation
 1. [Download the latest release](https://github.com/andyc99/miu-xinput/releases/latest)
@@ -23,7 +23,6 @@ Credit to MikeW for doing all the hard work on XArcade Xinput.
     netsh http add urlacl url=http://+:32123/ user=Everyone
     ```
 1. Run `MIU XInput.exe`
-1. [Test in the HTML5 Gamepad Tester](https://greggman.github.io/html5-gamepad-test/) You might have to press a key for the controller to be detected.
 
 ## Usage
 
@@ -98,7 +97,7 @@ This uses a modifier key (which must be held down) to dynamically change the nor
 }
 ```
 
-See the original XArcade Xinput project for further mappings which are possible to other controller sticks and buttons.
+See the original XArcade Xinput project for further mappings which are possible for other controller sticks and buttons.
 
 The syntax is JSON, where the key on the left is one of [System.Windows.Forms.Keys](https://msdn.microsoft.com/en-us/library/system.windows.forms.keys(v=vs.110).aspx#Anchor_1), and the value is an array of `[controllerIndex, controllerButtonOrAxis, ...parameters]`
 
